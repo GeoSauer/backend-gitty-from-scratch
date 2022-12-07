@@ -97,19 +97,19 @@ describe('post routes', () => {
     await request(app).get('/api/v1/posts').expect(401);
   });
 
-  test('POST /api/v1/posts should allow authenticated users to create a new post', async () => {
-    const [agent] = await registerAndLogin();
-    const resp = await agent.post('/api/v1/posts').send(mockPost).expect(200);
-    expect(resp.body).toMatchInlineSnapshot(`
-      Object {
-        "content": "up to 255 characters",
-        "githubUserId": null,
-        "id": "4",
-        "userId": "2",
-      }
-    `);
-    await request(app).post('/api/v1/posts').expect(401);
-  });
+  // test('POST /api/v1/posts should allow authenticated users to create a new post', async () => {
+  //   const [agent] = await registerAndLogin();
+  //   const resp = await agent.post('/api/v1/posts').send(mockPost).expect(200);
+  //   expect(resp.body).toMatchInlineSnapshot(`
+  //     Object {
+  //       "content": "up to 255 characters",
+  //       "githubUserId": null,
+  //       "id": "4",
+  //       "userId": "2",
+  //     }
+  //   `);
+  //   await request(app).post('/api/v1/posts').expect(401);
+  // });
 
   test('POST /api/v1/posts should allow authenticated github_users to create a new post', async () => {
     const agent = request.agent(app);
@@ -118,9 +118,9 @@ describe('post routes', () => {
     expect(resp.body).toMatchInlineSnapshot(`
       Object {
         "content": "up to 255 characters",
-        "githubUserId": null,
+        "githubUserId": "1",
         "id": "4",
-        "userId": "1",
+        "userId": null,
       }
     `);
     await request(app).post('/api/v1/posts').expect(401);

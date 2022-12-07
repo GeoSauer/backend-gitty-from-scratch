@@ -6,7 +6,7 @@ const { agent } = require('supertest');
 
 jest.mock('../lib/services/github');
 
-describe('github auth', () => {
+describe.skip('github auth', () => {
   beforeEach(() => {
     return setup(pool);
   });
