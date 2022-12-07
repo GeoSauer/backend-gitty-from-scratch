@@ -3,6 +3,7 @@ const setup = require('../data/setup');
 const request = require('supertest');
 const app = require('../lib/app');
 const UserService = require('../lib/services/UserService.js');
+// const { agent } = require('supertest');
 
 const mockUser = {
   firstName: 'Test',
@@ -39,6 +40,34 @@ describe('post routes', () => {
     pool.end();
   });
 
+  test('GET /api/v1/posts should allow authenticated users to return a list of posts for all users', async () => {
+    const [agent] = await registerAndLogin();
+    const resp = await agent.get('/api/v1/posts');
+    expect(resp.status).toBe(200);
+    expect(resp.body).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "content": "Wow here I go agian sharing stuff",
+          "githubUserId": null,
+          "id": "1",
+          "userId": "1",
+        },
+        Object {
+          "content": "Why did I share all that stuiff",
+          "githubUserId": null,
+          "id": "2",
+          "userId": "1",
+        },
+        Object {
+          "content": "I will not be sharing anything at all",
+          "githubUserId": "1",
+          "id": "3",
+          "userId": null,
+        },
+      ]
+    `);
+  });
+
   test('POST /api/v1/posts should allow authenticated users to create a new post', async () => {
     const [agent] = await registerAndLogin();
     const resp = await agent.post('/api/v1/posts').send(mockPost);
@@ -47,12 +76,19 @@ describe('post routes', () => {
       Object {
         "content": "up to 255 characters",
         "githubUserId": null,
-        "id": "1",
-        "userId": "1",
+        "id": "4",
+        "userId": "2",
       }
     `);
   });
 
-  test('POST /api/v1/posts should allow authenticated github_users to create a new post', async () => {});
-  test('GET /api/v1/posts should allow authenticated users to return a list of posts for all users', async () => {});
+  //   test('POST /api/v1/posts should allow authenticated github_users to create a new post', async () => {
+  //     await request
+  //       .agent(app)
+  //       .get('/api/v1/github/callback?code=42')
+  //       .redirects(1);
+  //     const resp = await agent(app).post('/api/v1/posts').send(mockPost);
+  //     expect(resp.status).toBe(200);
+  //     expect(resp.body).toMatchInlineSnapshot();
+  //   });
 });
