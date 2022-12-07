@@ -50,6 +50,6 @@ FOREIGN KEY (github_user_id) REFERENCES github_users(id)
 
 INSERT INTO posts (user_id, github_user_id, content)
 VALUES
-(1, null, 'Wow here I go agian sharing stuff'),
-(1, null, 'Why did I share all that stuiff'),
+(1, null, 'Wow here I go again sharing stuff'),
+(1, null, 'Why did I share all that stuff'),
 (null, 1, 'I will not be sharing anything at all');

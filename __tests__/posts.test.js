@@ -3,7 +3,7 @@ const setup = require('../data/setup');
 const request = require('supertest');
 const app = require('../lib/app');
 const UserService = require('../lib/services/UserService.js');
-// const { agent } = require('supertest');
+jest.mock('../lib/services/github');
 
 const mockUser = {
   firstName: 'Test',
@@ -42,18 +42,17 @@ describe('post routes', () => {
 
   test('GET /api/v1/posts should allow authenticated users to return a list of posts for all users', async () => {
     const [agent] = await registerAndLogin();
-    const resp = await agent.get('/api/v1/posts');
-    expect(resp.status).toBe(200);
+    const resp = await agent.get('/api/v1/posts').expect(200);
     expect(resp.body).toMatchInlineSnapshot(`
       Array [
         Object {
-          "content": "Wow here I go agian sharing stuff",
+          "content": "Wow here I go again sharing stuff",
           "githubUserId": null,
           "id": "1",
           "userId": "1",
         },
         Object {
-          "content": "Why did I share all that stuiff",
+          "content": "Why did I share all that stuff",
           "githubUserId": null,
           "id": "2",
           "userId": "1",
@@ -66,12 +65,41 @@ describe('post routes', () => {
         },
       ]
     `);
+    await request(app).get('/api/v1/posts').expect(401);
+  });
+
+  test('GET /api/v1/posts should allow authenticated github_users to return a list of posts for all users', async () => {
+    const agent = request.agent(app);
+    await agent.get('/api/v1/github/callback?code=42').redirects(1);
+    const resp = await agent.get('/api/v1/posts');
+    expect(resp.body).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "content": "Wow here I go again sharing stuff",
+          "githubUserId": null,
+          "id": "1",
+          "userId": "1",
+        },
+        Object {
+          "content": "Why did I share all that stuff",
+          "githubUserId": null,
+          "id": "2",
+          "userId": "1",
+        },
+        Object {
+          "content": "I will not be sharing anything at all",
+          "githubUserId": "1",
+          "id": "3",
+          "userId": null,
+        },
+      ]
+    `);
+    await request(app).get('/api/v1/posts').expect(401);
   });
 
   test('POST /api/v1/posts should allow authenticated users to create a new post', async () => {
     const [agent] = await registerAndLogin();
-    const resp = await agent.post('/api/v1/posts').send(mockPost);
-    expect(resp.status).toBe(200);
+    const resp = await agent.post('/api/v1/posts').send(mockPost).expect(200);
     expect(resp.body).toMatchInlineSnapshot(`
       Object {
         "content": "up to 255 characters",
@@ -80,15 +108,21 @@ describe('post routes', () => {
         "userId": "2",
       }
     `);
+    await request(app).post('/api/v1/posts').expect(401);
   });
 
-  //   test('POST /api/v1/posts should allow authenticated github_users to create a new post', async () => {
-  //     await request
-  //       .agent(app)
-  //       .get('/api/v1/github/callback?code=42')
-  //       .redirects(1);
-  //     const resp = await agent(app).post('/api/v1/posts').send(mockPost);
-  //     expect(resp.status).toBe(200);
-  //     expect(resp.body).toMatchInlineSnapshot();
-  //   });
+  test('POST /api/v1/posts should allow authenticated github_users to create a new post', async () => {
+    const agent = request.agent(app);
+    await agent.get('/api/v1/github/callback?code=42').redirects(1);
+    const resp = await agent.post('/api/v1/posts').send(mockPost).expect(200);
+    expect(resp.body).toMatchInlineSnapshot(`
+      Object {
+        "content": "up to 255 characters",
+        "githubUserId": null,
+        "id": "4",
+        "userId": "1",
+      }
+    `);
+    await request(app).post('/api/v1/posts').expect(401);
+  });
 });
